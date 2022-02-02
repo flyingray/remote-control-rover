@@ -4,7 +4,8 @@
     "dependencies": {
         "core": "*",
         "radio": "*",
-        "microphone": "*"
+        "microphone": "*",
+        "Rover": "github:Freenove/Makecode-Extension-Rover#v1.0.7"
     },
     "files": [
         "main.blocks",
