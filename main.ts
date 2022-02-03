@@ -50,20 +50,8 @@ function process_recv_queue () {
     recv_queue_value = convertToText(recv_queue.shift())
     if (recv_queue_value != "undefined") {
         serial.writeLine("recv:" + ("" + radio.receivedPacket(RadioPacketProperty.SerialNumber)) + "," + ("" + radio.receivedPacket(RadioPacketProperty.SignalStrength)) + "," + recv_queue_value)
-        if (recv_queue_value.split(":").shift() == "forward") {
-            Rover.MotorRunDual(50, 50)
-            images.arrowImage(ArrowNames.North).showImage(0)
-        } else if (recv_queue_value.split(":").shift() == "back") {
-            Rover.MotorRunDual(-50, -50)
-            images.arrowImage(ArrowNames.South).showImage(0)
-        } else if (recv_queue_value.split(":").shift() == "left") {
-            Rover.MotorRunDual(25, 75)
-            images.arrowImage(ArrowNames.West).showImage(0)
-        } else if (recv_queue_value.split(":").shift() == "right") {
-            Rover.MotorRunDual(75, 25)
-            images.arrowImage(ArrowNames.East).showImage(0)
-        } else {
-            Rover.MotorStopAll(MotorActions.Stop)
+        if (recv_queue_value.split(":").shift() == "move") {
+            handle_move(recv_queue_value.split(":").pop())
         }
     }
 }
@@ -105,6 +93,23 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
         `).showImage(0)
     led.setBrightness(200)
 })
+function handle_move (move_params: string) {
+    if (move_params.split(",").shift() == "forward") {
+        Rover.MotorRunDual(50, 50)
+        images.arrowImage(ArrowNames.North).showImage(0)
+    } else if (move_params.split(",").shift() == "back") {
+        Rover.MotorRunDual(-50, -50)
+        images.arrowImage(ArrowNames.South).showImage(0)
+    } else if (move_params.split(",").shift() == "left") {
+        Rover.MotorRunDual(25, 75)
+        images.arrowImage(ArrowNames.West).showImage(0)
+    } else if (move_params.split(",").shift() == "right") {
+        Rover.MotorRunDual(75, 25)
+        images.arrowImage(ArrowNames.East).showImage(0)
+    } else {
+        Rover.MotorStopAll(MotorActions.Stop)
+    }
+}
 let recv_queue: string[] = []
 let recv_queue_value = ""
 let send_queue: string[] = []
