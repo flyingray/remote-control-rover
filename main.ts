@@ -52,6 +52,10 @@ function process_recv_queue () {
         serial.writeLine("recv:" + ("" + radio.receivedPacket(RadioPacketProperty.SerialNumber)) + "," + ("" + radio.receivedPacket(RadioPacketProperty.SignalStrength)) + "," + recv_queue_value)
         if (recv_queue_value.split(":").shift() == "move") {
             handle_move(recv_queue_value.split(":").pop())
+        } else if (recv_queue_value.split(":").shift() == "hat_click") {
+            Rover.MotorStopAll(MotorActions.Stop)
+        } else {
+        	
         }
     }
 }
@@ -95,16 +99,16 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
 })
 function handle_move (move_params: string) {
     if (move_params.split(",").shift() == "forward") {
-        Rover.MotorRunDual(50, 50)
+        Rover.MotorRunDual(75, 75)
         images.arrowImage(ArrowNames.North).showImage(0)
     } else if (move_params.split(",").shift() == "back") {
-        Rover.MotorRunDual(-50, -50)
+        Rover.MotorRunDual(-75, -75)
         images.arrowImage(ArrowNames.South).showImage(0)
     } else if (move_params.split(",").shift() == "left") {
-        Rover.MotorRunDual(25, 75)
+        Rover.MotorRunDual(50, 100)
         images.arrowImage(ArrowNames.West).showImage(0)
     } else if (move_params.split(",").shift() == "right") {
-        Rover.MotorRunDual(75, 25)
+        Rover.MotorRunDual(100, 50)
         images.arrowImage(ArrowNames.East).showImage(0)
     } else {
         Rover.MotorStopAll(MotorActions.Stop)
