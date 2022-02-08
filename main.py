@@ -1,104 +1,148 @@
-def process_send_queue():
-    global snd_queue_value
-    snd_queue_value = convert_to_text(send_queue.shift())
-    if snd_queue_value != "undefined":
-        radio.send_string(snd_queue_value)
-        serial.write_line("send:" + snd_queue_value)
-def draw_out_dot():
-    led.plot_brightness(4, 2, 255)
-    basic.pause(50)
-    for an_element in [2, 1, 0]:
-        led.plot_brightness(4, an_element, 255)
-        basic.pause(50)
-    basic.pause(50)
-    for an_element2 in [2, 1, 0]:
-        led.plot_brightness(4, an_element2, 0)
-        basic.pause(50)
-def send_message(a_message: str):
-    send_queue.append(a_message)
+function handle_move_command (move_params: string) {
+    if (move_params.split(",").shift() == "forward") {
+        Rover.MotorRunDual(150, 150)
+        set_current_image(images.arrowImage(ArrowNames.North))
+    } else if (move_params.split(",").shift() == "back") {
+        Rover.MotorRunDual(-75, -75)
+        set_current_image(images.arrowImage(ArrowNames.South))
+    } else if (move_params.split(",").shift() == "left") {
+        Rover.MotorRunDual(50, 100)
+        set_current_image(images.arrowImage(ArrowNames.West))
+    } else if (move_params.split(",").shift() == "right") {
+        Rover.MotorRunDual(100, 50)
+        set_current_image(images.arrowImage(ArrowNames.East))
+    } else if (move_params.split(",").shift() == "forward_left") {
+        Rover.MotorRunDual(75, 100)
+        set_current_image(images.arrowImage(ArrowNames.NorthWest))
+    } else if (move_params.split(",").shift() == "forward_right") {
+        Rover.MotorRunDual(100, 75)
+        set_current_image(images.arrowImage(ArrowNames.NorthEast))
+    } else if (move_params.split(",").shift() == "back_left") {
+        Rover.MotorRunDual(-75, -100)
+        set_current_image(images.arrowImage(ArrowNames.SouthWest))
+    } else if (move_params.split(",").shift() == "back_right") {
+        Rover.MotorRunDual(-100, -75)
+        set_current_image(images.arrowImage(ArrowNames.SouthEast))
+    } else {
+        Rover.MotorStopAll(MotorActions.Stop)
+        set_current_image(images.iconImage(IconNames.Square))
+    }
+}
+function process_send_queue () {
+    snd_queue_value = convertToText(send_queue.shift())
+    if (snd_queue_value != "undefined") {
+        radio.sendString(snd_queue_value)
+        serial.writeLine("send:" + snd_queue_value)
+    }
+}
+function draw_out_dot () {
+    led.plotBrightness(4, 2, 255)
+    for (let an_element of [2, 1, 0]) {
+        led.plotBrightness(4, an_element, 255)
+    }
+    for (let an_element2 of [2, 1, 0]) {
+        led.plotBrightness(4, an_element2, 0)
+    }
+}
+function send_message (a_message: string) {
+    send_queue.push(a_message)
     draw_out_dot()
-
-def on_button_pressed_a():
-    led.set_brightness(200)
-    images.create_image("""
+}
+input.onButtonPressed(Button.A, function () {
+    turn_trim_adjust += 1
+    set_current_image(images.createImage(`
         . . # . .
-                . # . # .
-                . # # # .
-                . # . # .
-                . # . # .
-    """).show_image(0)
-    led.set_brightness(200)
-input.on_button_pressed(Button.A, on_button_pressed_a)
-
-
-def draw_in_dot():
-    led.plot_brightness(4, 0, 255)
-    basic.pause(50)
-    for an_element3 in [0, 1, 2]:
-        led.plot_brightness(4, an_element3, 255)
-        basic.pause(50)
-    basic.pause(50)
-    for an_element4 in [0, 1, 2]:
-        led.plot_brightness(4, an_element4, 0)
-        basic.pause(50)
-
-def process_recv_queue():
-    global recv_queue_value
-    recv_queue_value = convert_to_text(recv_queue.shift())
-    if recv_queue_value != "undefined":
-        serial.write_line("recv:" + ("" + str(radio.received_packet(RadioPacketProperty.SERIAL_NUMBER))) + "," + ("" + str(radio.received_packet(RadioPacketProperty.SIGNAL_STRENGTH))) + "," + recv_queue_value)
-def show_bright_image(image2: Image):
-    image2.show_image(0)
-    led.set_brightness(200)
-def recv_message(a_message2: str):
-    recv_queue.append(a_message2)
+        . # . . .
+        # . . . .
+        . # . . .
+        . . # . .
+        `))
+})
+function draw_in_dot () {
+    led.plotBrightness(4, 0, 255)
+    for (let an_element3 of [0, 1, 2]) {
+        led.plotBrightness(4, an_element3, 255)
+    }
+    for (let an_element4 of [0, 1, 2]) {
+        led.plotBrightness(4, an_element4, 0)
+    }
+}
+function set_current_image (image2: Image) {
+    current_image = image2
+    led.setBrightness(250)
+}
+function process_recv_queue () {
+    recv_queue_value = convertToText(recv_queue.shift())
+    if (recv_queue_value != "undefined") {
+        serial.writeLine("recv:" + ("" + radio.receivedPacket(RadioPacketProperty.SerialNumber)) + "," + ("" + radio.receivedPacket(RadioPacketProperty.SignalStrength)) + "," + recv_queue_value)
+        if (recv_queue_value.split(":").shift() == "move") {
+            handle_move_command(recv_queue_value.split(":").pop())
+        } else if (recv_queue_value.split(":").shift() == "hat_click") {
+            Rover.MotorStopAll(MotorActions.Stop)
+            set_current_image(images.iconImage(IconNames.Square))
+        } else {
+        	
+        }
+    }
+}
+function recv_message (a_message2: string) {
+    recv_queue.push(a_message2)
     draw_in_dot()
-
-def on_received_string(receivedString):
+}
+radio.onReceivedString(function (receivedString) {
     recv_message(receivedString)
-radio.on_received_string(on_received_string)
-
-def on_button_pressed_b():
-    led.set_brightness(200)
-    images.create_image("""
-        . # # . .
-                . # . # .
-                . # # . .
-                . # . # .
-                . # # . .
-    """).show_image(0)
-    led.set_brightness(200)
-input.on_button_pressed(Button.B, on_button_pressed_b)
-
-def heartbeat():
-    led.set_brightness(200)
-    basic.pause(50)
-    led.set_brightness(100)
-
-def on_logo_pressed():
-    led.set_brightness(200)
-    images.create_image("""
+})
+input.onButtonPressed(Button.B, function () {
+    turn_trim_adjust += -1
+    set_current_image(images.createImage(`
+        . . # . .
+        . . . # .
+        . . . . #
+        . . . # .
+        . . # . .
+        `))
+})
+function heartbeat () {
+    current_image.showImage(0)
+    heartbeat_count += 1
+    if (heartbeat_count % 4 == 0) {
+        if (heartbeat_count / 4 % 2 == 0) {
+            led.setBrightness(250)
+        } else {
+            led.setBrightness(100)
+        }
+    }
+}
+input.onLogoEvent(TouchButtonEvent.Pressed, function () {
+    turn_trim_adjust = 0
+    set_current_image(images.createImage(`
         . . . . .
-                . # # # .
-                # . . . #
-                . # # # .
-                . . . . .
-    """).show_image(0)
-    led.set_brightness(200)
-input.on_logo_event(TouchButtonEvent.PRESSED, on_logo_pressed)
-
-recv_queue: List[str] = []
-recv_queue_value = ""
-send_queue: List[str] = []
-snd_queue_value = ""
-radio.set_transmit_serial_number(True)
-radio.set_group(1)
-basic.show_icon(IconNames.SMALL_DIAMOND)
-heartbeat()
-
-def on_forever():
+        . # # # .
+        # . . . #
+        . # # # .
+        . . . . .
+        `))
+})
+function handle_move (move_params: string) {
+	
+}
+let recv_queue: string[] = []
+let recv_queue_value = ""
+let send_queue: string[] = []
+let snd_queue_value = ""
+let current_image: Image = null
+let heartbeat_count = 0
+let turn_trim_adjust = 0
+Rover.MotorStopAll(MotorActions.Stop)
+radio.setTransmitSerialNumber(true)
+radio.setGroup(1)
+let move_speed = 150
+turn_trim_adjust = 0
+heartbeat_count = 0
+current_image = images.iconImage(IconNames.SmallDiamond)
+led.setBrightness(200)
+basic.forever(function () {
     process_send_queue()
     process_recv_queue()
-    basic.pause(50)
     heartbeat()
-basic.forever(on_forever)
+})
